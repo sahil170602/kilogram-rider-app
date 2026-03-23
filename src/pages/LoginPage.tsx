@@ -11,7 +11,7 @@ const LoginPage = ({ onLogin }: LoginProps) => {
   const [stage, setStage] = useState<'phone' | 'info'>('phone');
   const [phone, setPhone] = useState("");
   const [fullName, setFullName] = useState("");
-  const [bikeNumber, setBikeNumber] = useState(""); // 🎯 New State
+  const [bikeNumber, setBikeNumber] = useState(""); 
   const [loading, setLoading] = useState(false);
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
@@ -20,6 +20,7 @@ const LoginPage = ({ onLogin }: LoginProps) => {
     setLoading(true);
 
     try {
+      // 🎯 Target 'rider_profiles' and 'phone_number' column
       const { data, error } = await supabase
         .from('rider_profiles')
         .select('*')
@@ -27,7 +28,7 @@ const LoginPage = ({ onLogin }: LoginProps) => {
         .maybeSingle();
 
       if (data) {
-        onLogin(data); // Restore session
+        onLogin(data); // Restore existing rider session
       } else {
         setStage('info'); // New Registration
       }
@@ -43,12 +44,15 @@ const LoginPage = ({ onLogin }: LoginProps) => {
     setLoading(true);
 
     try {
+      // 🎯 Target 'rider_profiles' with vehicle_number and phone_number
       const { data, error } = await supabase
         .from('rider_profiles')
         .insert([{ 
             phone_number: phone, 
             full_name: fullName.toLowerCase(),
-            vehicle_number: bikeNumber.toUpperCase() // 🎯 Save Bike No
+            vehicle_number: bikeNumber.toUpperCase(),
+            is_active: true,
+            is_busy: false
         }])
         .select()
         .single();
@@ -101,7 +105,6 @@ const LoginPage = ({ onLogin }: LoginProps) => {
               key="info-form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
               onSubmit={handleRegistration} className="flex flex-col gap-4"
             >
-              {/* Full Name Input */}
               <div className="relative group">
                 <User className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-primary transition-colors" size={18} />
                 <input 
@@ -111,7 +114,6 @@ const LoginPage = ({ onLogin }: LoginProps) => {
                 />
               </div>
 
-              {/* Bike Number Input 🎯 */}
               <div className="relative group">
                 <Hash className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-primary transition-colors" size={18} />
                 <input 
