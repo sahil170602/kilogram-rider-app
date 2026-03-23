@@ -20,7 +20,7 @@ const LoginPage = ({ onLogin }: LoginProps) => {
     setLoading(true);
 
     try {
-      // 🎯 Target 'rider_profiles' and 'phone_number' column
+      // 🎯 Target 'rider_profiles' via phone_number
       const { data, error } = await supabase
         .from('rider_profiles')
         .select('*')
@@ -28,9 +28,11 @@ const LoginPage = ({ onLogin }: LoginProps) => {
         .maybeSingle();
 
       if (data) {
-        onLogin(data); // Restore existing rider session
+        // If profile exists, log them in
+        onLogin(data);
       } else {
-        setStage('info'); // New Registration
+        // Otherwise, ask for info to register
+        setStage('info');
       }
     } catch (err: any) {
       alert("Error: " + err.message);
@@ -44,7 +46,6 @@ const LoginPage = ({ onLogin }: LoginProps) => {
     setLoading(true);
 
     try {
-      // 🎯 Target 'rider_profiles' with vehicle_number and phone_number
       const { data, error } = await supabase
         .from('rider_profiles')
         .insert([{ 
@@ -131,13 +132,6 @@ const LoginPage = ({ onLogin }: LoginProps) => {
             </motion.form>
           )}
         </AnimatePresence>
-
-        <footer className="mt-12 text-center">
-            <div className="flex items-center justify-center gap-2 text-white/20 mb-1">
-                <ShieldCheck size={12} />
-                <span className="text-[9px] font-black uppercase tracking-widest">End-to-end encrypted node</span>
-            </div>
-        </footer>
       </main>
     </div>
   );

@@ -9,36 +9,25 @@ function App() {
   const [stage, setStage] = useState<'loading' | 'login' | 'dashboard'>('loading');
   const [rider, setRider] = useState<any>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false); // 🎯 CRITICAL: Track if auth check finished
 
-  // 🎯 RESTORE: Fetch from 'rider_profiles'
   const restoreRiderData = useCallback(async (userId: string) => {
     setIsSyncing(true);
     try {
-      // 1. Fetch Profile safely
       const { data: profiles, error: pError } = await supabase
         .from('rider_profiles')
         .select('*')
         .eq('id', userId);
 
-      if (pError) throw pError;
-
-      if (!profiles || profiles.length === 0) {
-        console.warn("No rider profile row found.");
-        return null;
-      }
+      if (pError || !profiles || profiles.length === 0) return null;
 
       const profile = profiles[0];
-
-      // 2. Fetch Orders for this rider
-      const { data: orders, error: oError } = await supabase
+      const { data: orders } = await supabase
         .from('orders')
         .select('*')
         .eq('rider_id', userId)
         .order('created_at', { ascending: false });
 
-      if (oError) throw oError;
-
-      // 3. Calculate Earnings
       const totalEarnings = orders
         ?.filter(o => o.status === 'delivered')
         .reduce((sum, o) => sum + (Number(o.total_amount) * 0.1), 0) || 0;
@@ -57,7 +46,7 @@ function App() {
       localStorage.setItem('kilo_rider_session', JSON.stringify(fullRiderData));
       return fullRiderData;
     } catch (error) {
-      console.error("Error restoring rider data:", error);
+      console.error("Sync Error:", error);
       return null;
     } finally {
       setIsSyncing(false);
@@ -66,30 +55,32 @@ function App() {
 
   useEffect(() => {
     const initAuth = async () => {
+      // 🎯 1. Check Supabase session first
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
         const data = await restoreRiderData(session.user.id);
-        if (data) setStage('dashboard');
-        else setStage('login');
-      } else {
-        const saved = localStorage.getItem('kilo_rider_session');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          setRider(parsed);
+        if (data) {
+           setRider(data);
         }
+      } else {
+        // 🎯 2. If no session, check localStorage as backup
+        const saved = localStorage.getItem('kilo_rider_session');
+        if (saved) setRider(JSON.parse(saved));
       }
+      
+      setAuthChecked(true); // 🎯 Auth process finished
     };
 
     initAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         const data = await restoreRiderData(session.user.id);
         if (data) setStage('dashboard');
-        else setStage('login');
-      } else {
+      } else if (event === 'SIGNED_OUT') {
         setRider(null);
+        localStorage.removeItem('kilo_rider_session');
         setStage('login');
       }
     });
@@ -98,7 +89,10 @@ function App() {
   }, [restoreRiderData]);
 
   const handleSplashComplete = () => {
-    if (rider && rider.id) {
+    // 🎯 If auth check is still running, don't leave splash yet
+    if (!authChecked) return;
+
+    if (rider) {
       setStage('dashboard');
     } else {
       setStage('login');
@@ -106,13 +100,10 @@ function App() {
   };
 
   const handleLogin = async (riderData: any) => {
-    // Save minimal data and trigger full sync
     setRider(riderData);
     const syncedData = await restoreRiderData(riderData.id);
     if (syncedData) {
       setStage('dashboard');
-    } else {
-      setStage('dashboard'); // Still enter dashboard if just registered
     }
   };
 
@@ -129,7 +120,7 @@ function App() {
         <div className="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-primary">Syncing Profile...</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-primary">Restoring Profile...</p>
           </div>
         </div>
       )}
