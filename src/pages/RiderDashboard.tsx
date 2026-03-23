@@ -109,7 +109,6 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
     setActionLoading(false);
   };
 
-  // 🎯 CUSTOM LOGIC: Confirm pickup (Used when admin has packed the order)
   const handleConfirmPickup = async () => {
     if (!myTask) return;
     setActionLoading(true);
@@ -203,7 +202,8 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
         <div className="grid grid-cols-2 gap-5">
           <div className="bg-white/[0.02] border border-white/5 rounded-[2.2rem] p-7">
             <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-2">Earnings</p>
-            <p className="text-3xl font-black italic text-primary">₹{rider?.earnings || 0}</p>
+            {/* 🎯 DECIMAL FIX: toFixed(2) applied below */}
+            <p className="text-3xl font-black italic text-primary">₹{Number(rider?.earnings || 0).toFixed(2)}</p>
           </div>
           <div className="bg-white/[0.02] border border-white/5 rounded-[2.2rem] p-7">
             <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-2">Success</p>
@@ -242,13 +242,13 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
                         </div>
                     </div>
 
-                    {/* 🎯 MAP BUTTON: Logic changes based on pickup status */}
+                    {/* 🎯 MAP BUTTON: Logic changes destination based on picked status */}
                     <div className="bg-white/5 border border-white/5 rounded-[2rem] p-6 flex items-start gap-5 mb-10" 
                          onClick={() => openMaps(myTask.status === 'order dispatched' ? myTask.address : storeInfo.address)}>
                         <MapPin size={24} className="text-primary shrink-0 mt-1" />
                         <div className="flex flex-col">
                             <p className="text-[10px] font-black uppercase text-white/20 mb-1">
-                                {myTask.status === 'order dispatched' ? 'drop-off location' : 'pickup from hub'}
+                                {myTask.status === 'order dispatched' ? 'User navigation active' : 'Hub location active'}
                             </p>
                             <p className="text-sm font-bold leading-relaxed opacity-80">
                                 {myTask.status === 'order dispatched' ? myTask.address : storeInfo.address}
@@ -260,7 +260,7 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
                         {myTask.status === 'order placed' || myTask.status === 'rider_assigned' || myTask.status === 'order packed' ? (
                            <div className="flex flex-col items-center">
                                 <p className="text-[10px] font-bold text-white/20 mb-8 uppercase tracking-widest italic text-center">
-                                    {myTask.status === 'order packed' ? 'order is packed! collect from hub.' : 'awaiting store preparation...'}
+                                    {myTask.status === 'order packed' ? 'Admin packed order! confirm pickup.' : 'Store is preparing items...'}
                                 </p>
                                 <div className="grid grid-cols-2 gap-4 w-full">
                                     <button onClick={() => openMaps(storeInfo.address)} className="py-5 bg-white/5 border border-white/10 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest text-primary flex items-center justify-center gap-3">
@@ -269,7 +269,7 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
                                     <button 
                                         onClick={handleConfirmPickup}
                                         disabled={myTask.status !== 'order packed'}
-                                        className={`py-5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${myTask.status === 'order packed' ? 'bg-primary text-black' : 'bg-white/5 text-white/10 border border-white/5 cursor-not-allowed'}`}>
+                                        className={`py-5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${myTask.status === 'order packed' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'bg-white/5 text-white/10 border border-white/5 cursor-not-allowed'}`}>
                                         <Truck size={18} /> Picked order
                                     </button>
                                 </div>
@@ -277,8 +277,12 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
                         ) : (
                            <div className="space-y-6">
                              <div className="grid grid-cols-2 gap-4">
-                                <button onClick={() => openMaps(myTask.address)} className="h-16 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3"><Navigation size={18} /> User Navigation</button>
-                                <a href={`tel:${myTask.user_phone}`} className="h-16 bg-green-500/10 text-green-400 border border-green-500/20 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3"><Phone size={18} /> Call User</a>
+                                <button onClick={() => openMaps(myTask.address)} className="h-16 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-all">
+                                  <Navigation size={18} /> User Navigation
+                                </button>
+                                <a href={`tel:${myTask.user_phone}`} className="h-16 bg-green-500/10 text-green-400 border border-green-500/20 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-all">
+                                  <Phone size={18} /> Call User
+                                </a>
                              </div>
                              <button onClick={handleComplete} className="w-full py-6 bg-white text-black rounded-[1.5rem] font-black uppercase text-xs tracking-widest flex items-center justify-center gap-4 shadow-xl active:scale-[0.98]">
                                <CheckCircle size={24} /> Complete Delivery
