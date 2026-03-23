@@ -1,0 +1,30 @@
+workflows:
+  android-rider-workflow:
+    name: Kilogram Rider - Signed APK Build
+    environment:
+      groups:
+        - supabase_creds
+      java: 21 
+      android_signing:
+        - kilogram user # 🎯 Reuses your existing keystore
+    scripts:
+      - name: Install dependencies and build web
+        script: |
+          npm install
+          npm run build
+          # 🎯 Generates Rider-specific icons in the cloud
+          npx @capacitor/assets generate --android 
+          npx cap sync android
+      - name: Build Signed Rider APK
+        script: |
+          cd android
+          chmod +x gradlew
+          # 🎯 Forces the 'kilogram user' signature into the release build
+          ./gradlew clean assembleRelease \
+            -Pandroid.injected.signing.store.file=$CM_KEYSTORE_PATH \
+            -Pandroid.injected.signing.store.password=$CM_KEYSTORE_PASSWORD \
+            -Pandroid.injected.signing.key.alias=$CM_KEY_ALIAS \
+            -Pandroid.injected.signing.key.password=$CM_KEY_PASSWORD
+    artifacts:
+      # 🎯 Collects the final signed Rider APK
+      - android/app/build/outputs/apk/release/app-release.apk
