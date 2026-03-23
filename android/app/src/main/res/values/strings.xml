@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Kilogram Rider</string>
+    <string name="title_activity_main">Kilogram Rider</string>
+    <string name="package_name">com.kilogram.rider</string>
+    <string name="custom_url_scheme">com.kilogram.rider</string>
+</resources>
