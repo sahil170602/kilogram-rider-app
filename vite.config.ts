@@ -4,13 +4,14 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  // 🎯 CRITICAL: This MUST be an empty string or './' 
-  // to force all paths to be relative.
+  // 🎯 Use an empty string for the base path
   base: '', 
   build: {
     outDir: 'dist',
-    assetsDir: 'assets',
-    // Helps with older Android WebViews
+    // 🎯 Use 'es2015' for maximum compatibility with Android phones
     target: 'es2015',
+    cssTarget: 'chrome61',
+    assetsDir: 'assets',
+    modulePreload: { polyfill: true }
   }
 })
