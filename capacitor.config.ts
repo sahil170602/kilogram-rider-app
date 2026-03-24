@@ -3,7 +3,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.kilogram.rider',
   appName: 'Kilogram Rider',
-  webDir: 'dist',
+  webDir: "dist",
   bundledWebRuntime: false,
   server: {
     // 🎯 Use 'http' if 'https' is causing certificate/loading issues locally
