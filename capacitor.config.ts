@@ -5,14 +5,11 @@ const config: CapacitorConfig = {
   appName: 'Kilogram Rider',
   webDir: 'dist',
   server: {
-    // 🎯 Use 'https' for the scheme to match Supabase
-    androidScheme: 'https',
-    // 🎯 Allows the app to talk to your Supabase URL
+    // 🎯 Change this to 'http' (Internal only) 
+    // This often fixes the 'Failed to Fetch' CORS issue on Android
+    androidScheme: 'http',
     cleartext: true,
-    allowNavigation: [
-      '*.supabase.co',
-      'localhost'
-    ]
+    allowNavigation: ['*']
   }
 };
 
