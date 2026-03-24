@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
-// 🎯 Add a fallback check so the app doesn't go black if variables are missing
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
+// 🎯 REPLACE THESE with your actual strings from the Supabase Dashboard
+const supabaseUrl = 'https://wohlmirmfcvdoateryzc.supabase.co'
+const supabaseKey = 'sb_publishable_hk-ZHS4PhdHoah2KqNQ0PQ_N6Nfcyrx' 
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
