@@ -4,14 +4,20 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  // 🎯 Use an empty string for the base path
-  base: '', 
+  base: '', // 🎯 Keeps all paths relative
   build: {
     outDir: 'dist',
-    // 🎯 Use 'es2015' for maximum compatibility with Android phones
-    target: 'es2015',
+    // 🎯 Target older browsers (Chrome 61+ / Android 6+)
+    target: ['chrome61', 'es2015'], 
     cssTarget: 'chrome61',
-    assetsDir: 'assets',
-    modulePreload: { polyfill: true }
+    modulePreload: { polyfill: true },
+    rollupOptions: {
+      output: {
+        // 🎯 Simple naming to prevent path confusion
+        entryFileNames: `assets/[name].js`,
+        chunkFileNames: `assets/[name].js`,
+        assetFileNames: `assets/[name].[ext]`
+      }
+    }
   }
 })
