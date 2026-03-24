@@ -5,11 +5,9 @@ const config: CapacitorConfig = {
   appName: 'Kilogram Rider',
   webDir: 'dist',
   server: {
-    // 🎯 Change this to 'http' (Internal only) 
-    // This often fixes the 'Failed to Fetch' CORS issue on Android
-    androidScheme: 'http',
+    androidScheme: 'http', // 🎯 Switching to http often bypasses strict CORS
     cleartext: true,
-    allowNavigation: ['*']
+    allowNavigation: ['*'] // 🎯 Allow the app to talk to ANY url
   }
 };
 
