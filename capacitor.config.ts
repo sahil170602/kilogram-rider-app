@@ -5,9 +5,12 @@ const config: CapacitorConfig = {
   appName: 'Kilogram Rider',
   webDir: 'dist',
   server: {
-    androidScheme: 'http', // 🎯 Switching to http often bypasses strict CORS
+    androidScheme: 'https',
     cleartext: true,
-    allowNavigation: ['*'] // 🎯 Allow the app to talk to ANY url
+    allowNavigation: [
+      'wohlmirmfcvdoateryzc.supabase.co', // 🎯 Update this to the new URL
+      '*'
+    ]
   }
 };
 

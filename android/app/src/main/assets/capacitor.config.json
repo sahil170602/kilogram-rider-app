@@ -3,9 +3,10 @@
 	"appName": "Kilogram Rider",
 	"webDir": "dist",
 	"server": {
-		"androidScheme": "http",
+		"androidScheme": "https",
 		"cleartext": true,
 		"allowNavigation": [
+			"wohlmirmfcvdoateryzc.supabase.co",
 			"*"
 		]
 	}
