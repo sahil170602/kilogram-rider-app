@@ -1,58 +1,28 @@
 workflows:
   android-rider-workflow:
     name: Kilogram Rider - Signed APK Build
-
-    max_build_duration: 60
-
     environment:
-      node: 20
-      java: 17   # ⚠️ safer than 21 for Android builds
       groups:
         - supabase_creds
+      # 🎯 ADD THIS LINE: Tells Codemagic to use the newest Node
+      node: 22
+      java: 21 
       android_signing:
         - kilogram user
-
-    cache:
-      cache_paths:
-        - ~/.npm
-        - ~/.gradle
-
     scripts:
-      - name: Install dependencies
+      - name: Install and Build Rider Web
         script: |
           npm install
-
-      - name: Build web app (CRITICAL)
-        script: |
           npm run build
-
-      - name: Ensure Capacitor uses dist
-        script: |
           npx cap sync android
-
-      - name: Generate app icons (optional)
-        script: |
-          npx @capacitor/assets generate --android
-
-      - name: Clean previous builds
+      - name: Build Signed Rider APK
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew clean
-
-      - name: Build Signed APK
-        script: |
-          cd android
-          ./gradlew assembleRelease \
+          ./gradlew clean assembleRelease \
             -Pandroid.injected.signing.store.file=$CM_KEYSTORE_PATH \
             -Pandroid.injected.signing.store.password=$CM_KEYSTORE_PASSWORD \
             -Pandroid.injected.signing.key.alias=$CM_KEY_ALIAS \
             -Pandroid.injected.signing.key.password=$CM_KEY_PASSWORD
-
     artifacts:
       - android/app/build/outputs/apk/release/app-release.apk
-
-    publishing:
-      email:
-        recipients:
-          - sahilmeshram1917@gmail.com
