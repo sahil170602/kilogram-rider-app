@@ -5,7 +5,7 @@ workflows:
     max_build_duration: 60
 
     environment:
-      node: 18
+      node: 20
       java: 17   # ⚠️ safer than 21 for Android builds
       groups:
         - supabase_creds
