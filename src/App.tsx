@@ -106,14 +106,9 @@ function App() {
     return () => subscription.unsubscribe();
   }, [restoreRiderData]);
 
-  const handleSplashComplete = () => {
-    // 🎯 If rider is already found from session, jump to dashboard
-    if (rider) {
-      setStage('dashboard');
-    } else {
-      setStage('login');
-    }
-  };
+  const handleSplashComplete = useCallback(() => {
+  setStage(rider ? 'dashboard' : 'login');
+}, [rider]);
 
   const handleLogin = async (riderData: any) => {
     setRider(riderData);
