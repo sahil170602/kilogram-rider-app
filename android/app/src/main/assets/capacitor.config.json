@@ -2,9 +2,8 @@
 	"appId": "com.kilogram.rider",
 	"appName": "Kilogram Rider",
 	"webDir": "dist",
-	"bundledWebRuntime": false,
 	"server": {
-		"androidScheme": "http",
+		"androidScheme": "https",
 		"cleartext": true,
 		"allowNavigation": [
 			"*"
