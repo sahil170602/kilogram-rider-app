@@ -3,10 +3,13 @@
 	"appName": "Kilogram Rider",
 	"webDir": "dist",
 	"server": {
-		"androidScheme": "http",
+		"androidScheme": "https",
 		"cleartext": true,
 		"allowNavigation": [
-			"*"
+			"google.com",
+			"*.google.com",
+			"*.supabase.co",
+			"maps.google.com"
 		]
 	}
 }

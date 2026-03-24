@@ -139,8 +139,10 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
     }
   };
 
-  const openMaps = (addr: string) => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
-
+const openMaps = (addr: string) => {
+  // geo:0,0?q=Address is the fastest way to trigger the Maps app
+  window.location.href = `geo:0,0?q=${encodeURIComponent(addr)}`;
+};
   return (
     /* 🎯 SCROLL FIX: Removed h-screen and fixed flex-col to allow natural document scrolling */
     <div className="min-h-screen bg-[#08080a] text-white flex flex-col font-sans lowercase selection:bg-primary/30">

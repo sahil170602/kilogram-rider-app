@@ -5,11 +5,16 @@ const config: CapacitorConfig = {
   appName: 'Kilogram Rider',
   webDir: 'dist',
   server: {
-    // 🎯 Change this to 'http' (Internal only) 
-    // This often fixes the 'Failed to Fetch' CORS issue on Android
-    androidScheme: 'http',
+    // 🎯 Use 'https' for better security and Supabase compatibility
+    androidScheme: 'https',
     cleartext: true,
-    allowNavigation: ['*']
+    // 🎯 This tells the APK which external links are safe to open
+    allowNavigation: [
+      "google.com",
+      "*.google.com",
+      "*.supabase.co", // Allow your Supabase database
+      "maps.google.com"
+    ]
   }
 };
 
