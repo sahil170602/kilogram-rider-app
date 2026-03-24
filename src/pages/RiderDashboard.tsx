@@ -1,30 +1,24 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabase";
 import { 
-  MapPin, Phone, CheckCircle, Navigation, Bike, Loader2, LogOut, Check, Wallet,
-  Zap, Clock, ShieldCheck, BellRing, ChevronRight, PackageCheck, Truck, AlertTriangle,
-  Power, PowerOff, Map
+  MapPin, Phone, CheckCircle, Navigation, Bike, Loader2, LogOut, Check, 
+  Power, PowerOff, Clock, BellRing, ChevronRight, Truck
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void }) => {
-  // --- UI & NAVIGATION STATE ---
   const [activeTab, setActiveTab] = useState<'live' | 'history'>('live');
   const [isOnline, setIsOnline] = useState(rider?.is_active ?? true);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // --- DATA STATE ---
   const [myTask, setMyTask] = useState<any | null>(null);
   const [completedOrders, setCompletedOrders] = useState<any[]>([]);
   const [storeInfo, setStoreInfo] = useState({ address: "", lat: 0, lng: 0 });
   
-  // --- NOTIFICATION & GEO STATE ---
-  const [geoError, setGeoError] = useState<{show: boolean, msg: string} | null>(null);
   const [incomingAssignment, setIncomingAssignment] = useState<any | null>(null);
   const beepIntervalRef = useRef<any>(null);
 
-  // --- 🎯 CORE: FETCH RIDER DATA ---
   const fetchRiderData = useCallback(async () => {
     if (!rider?.id) return;
     try {
@@ -67,7 +61,6 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
 
   useEffect(() => {
     fetchRiderData();
-
     const riderChannel = supabase.channel(`rider-${rider.id}-sync`)
       .on('postgres_changes', { 
         event: '*', 
@@ -101,10 +94,8 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
     stopBeep();
     const orderId = incomingAssignment.id;
     setIncomingAssignment(null);
-
     await supabase.from('orders').update({ status: 'order placed' }).eq('id', orderId);
     await supabase.from('rider_profiles').update({ is_busy: true }).eq('id', rider.id);
-    
     await fetchRiderData();
     setActionLoading(false);
   };
@@ -151,7 +142,8 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
   const openMaps = (addr: string) => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank');
 
   return (
-    <div className="min-h-screen bg-[#08080a] text-white flex flex-col font-sans lowercase no-scrollbar">
+    /* 🎯 SCROLL FIX: Removed h-screen and fixed flex-col to allow natural document scrolling */
+    <div className="min-h-screen bg-[#08080a] text-white flex flex-col font-sans lowercase selection:bg-primary/30">
       
       {actionLoading && (
         <div className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-md flex items-center justify-center">
@@ -161,23 +153,20 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
 
       <AnimatePresence>
         {incomingAssignment && (
-          <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} className="fixed inset-0 z-[500] bg-primary flex flex-col items-center justify-center p-10 text-black text-center">
+          <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} className="fixed inset-0 z-[1100] bg-primary flex flex-col items-center justify-center p-10 text-black text-center">
             <BellRing size={80} className="mb-6 animate-bounce" />
             <h2 className="text-5xl font-black tracking-tighter uppercase italic leading-none mb-10">Dispatch<br/>Received</h2>
-            
             <div className="bg-black/5 p-8 rounded-[2.5rem] w-full max-w-xs mb-10 border border-black/10">
                 <p className="text-3xl font-black italic mb-2">₹{incomingAssignment.total_amount}</p>
                 <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">{incomingAssignment.address}</p>
             </div>
-
-            <div className="flex flex-col w-full max-w-xs">
-              <button onClick={handleAccept} className="w-full h-20 bg-black text-white rounded-[2rem] font-black uppercase text-xl tracking-widest active:scale-95 shadow-2xl transition-all">Accept Order</button>
-            </div>
+            <button onClick={handleAccept} className="w-full max-w-xs h-20 bg-black text-white rounded-[2rem] font-black uppercase text-xl tracking-widest shadow-2xl transition-all active:scale-95">Accept Order</button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <header className="px-8 pt-16 pb-10 bg-[#0c0c0f] border-b border-white/5 sticky top-0 z-50 text-left">
+      {/* Header */}
+      <header className="px-8 pt-16 pb-10 bg-[#0c0c0f] border-b border-white/5 text-left">
         <div className="flex items-center justify-between mb-10">
           <div className="flex items-center gap-5">
             <div className={`w-16 h-16 rounded-[1.8rem] flex items-center justify-center transition-all ${isOnline ? 'bg-primary/10 text-primary border-2 border-primary/20 shadow-[0_0_30px_rgba(255,153,193,0.1)]' : 'bg-white/5 text-white/20'}`}>
@@ -202,7 +191,6 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
         <div className="grid grid-cols-2 gap-5">
           <div className="bg-white/[0.02] border border-white/5 rounded-[2.2rem] p-7">
             <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-2">Earnings</p>
-            {/* 🎯 DECIMAL FIX: toFixed(2) applied below */}
             <p className="text-3xl font-black italic text-primary">₹{Number(rider?.earnings || 0).toFixed(2)}</p>
           </div>
           <div className="bg-white/[0.02] border border-white/5 rounded-[2.2rem] p-7">
@@ -212,12 +200,14 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
         </div>
       </header>
 
-      <nav className="flex p-6 gap-3 bg-[#08080a] sticky top-[280px] z-40">
-        <button onClick={() => setActiveTab('live')} className={`flex-1 py-5 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === 'live' ? 'bg-primary text-black' : 'bg-white/5 text-white/20'}`}>live task</button>
-        <button onClick={() => setActiveTab('history')} className={`flex-1 py-5 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-primary text-black' : 'bg-white/5 text-white/20'}`}>history</button>
+      {/* 🎯 STICKY NAV: Sticky at the top of the viewport when scrolling down */}
+      <nav className="flex p-6 gap-3 bg-[#08080a] sticky top-0 z-40 border-b border-white/5 backdrop-blur-md">
+        <button onClick={() => setActiveTab('live')} className={`flex-1 py-5 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === 'live' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'bg-white/5 text-white/20'}`}>live task</button>
+        <button onClick={() => setActiveTab('history')} className={`flex-1 py-5 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'bg-white/5 text-white/20'}`}>history</button>
       </nav>
 
-      <main className="flex-1 px-6 pb-20 overflow-y-auto no-scrollbar">
+      {/* 🎯 MAIN CONTENT: Added pb-32 to ensure bottom task buttons are never cut off */}
+      <main className="flex-1 px-6 pt-6 pb-32">
         <AnimatePresence mode="wait">
           {activeTab === 'live' && (
             <motion.div key="live" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-6">
@@ -242,7 +232,6 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
                         </div>
                     </div>
 
-                    {/* 🎯 MAP BUTTON: Logic changes destination based on picked status */}
                     <div className="bg-white/5 border border-white/5 rounded-[2rem] p-6 flex items-start gap-5 mb-10" 
                          onClick={() => openMaps(myTask.status === 'order dispatched' ? myTask.address : storeInfo.address)}>
                         <MapPin size={24} className="text-primary shrink-0 mt-1" />
@@ -257,20 +246,20 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
                     </div>
 
                     <div className="space-y-6">
-                        {myTask.status === 'order placed' || myTask.status === 'rider_assigned' || myTask.status === 'order packed' ? (
+                        {['order placed', 'rider_assigned', 'order packed'].includes(myTask.status) ? (
                            <div className="flex flex-col items-center">
                                 <p className="text-[10px] font-bold text-white/20 mb-8 uppercase tracking-widest italic text-center">
                                     {myTask.status === 'order packed' ? 'Admin packed order! confirm pickup.' : 'Store is preparing items...'}
                                 </p>
                                 <div className="grid grid-cols-2 gap-4 w-full">
-                                    <button onClick={() => openMaps(storeInfo.address)} className="py-5 bg-white/5 border border-white/10 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest text-primary flex items-center justify-center gap-3">
-                                        <Navigation size={18} /> Store location
+                                    <button onClick={() => openMaps(storeInfo.address)} className="py-5 bg-white/5 border border-white/10 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest text-primary flex items-center justify-center gap-3 active:scale-95">
+                                        <Navigation size={18} /> Store
                                     </button>
                                     <button 
                                         onClick={handleConfirmPickup}
                                         disabled={myTask.status !== 'order packed'}
-                                        className={`py-5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${myTask.status === 'order packed' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'bg-white/5 text-white/10 border border-white/5 cursor-not-allowed'}`}>
-                                        <Truck size={18} /> Picked order
+                                        className={`py-5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all active:scale-95 ${myTask.status === 'order packed' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'bg-white/5 text-white/10 border border-white/5 cursor-not-allowed'}`}>
+                                        <Truck size={18} /> Picked
                                     </button>
                                 </div>
                            </div>
@@ -278,10 +267,10 @@ const RiderDashboard = ({ rider, onLogout }: { rider: any, onLogout: () => void 
                            <div className="space-y-6">
                              <div className="grid grid-cols-2 gap-4">
                                 <button onClick={() => openMaps(myTask.address)} className="h-16 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-all">
-                                  <Navigation size={18} /> User Navigation
+                                  <Navigation size={18} /> Maps
                                 </button>
                                 <a href={`tel:${myTask.user_phone}`} className="h-16 bg-green-500/10 text-green-400 border border-green-500/20 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-all">
-                                  <Phone size={18} /> Call User
+                                  <Phone size={18} /> Call
                                 </a>
                              </div>
                              <button onClick={handleComplete} className="w-full py-6 bg-white text-black rounded-[1.5rem] font-black uppercase text-xs tracking-widest flex items-center justify-center gap-4 shadow-xl active:scale-[0.98]">
