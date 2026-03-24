@@ -4,13 +4,13 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  // 🎯 CRITICAL: This fixes the MIME type error on Android
+  // 🎯 CRITICAL: This MUST be an empty string or './' 
+  // to force all paths to be relative.
   base: '', 
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    // 🎯 Ensures your JS files are compatible with older WebViews
-    target: 'esnext', 
-    minify: false, // Set to true for production later, false now for easier debugging
+    // Helps with older Android WebViews
+    target: 'es2015',
   }
 })

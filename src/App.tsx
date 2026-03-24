@@ -9,7 +9,7 @@ function App() {
   const [stage, setStage] = useState<'loading' | 'login' | 'dashboard'>('loading');
   const [rider, setRider] = useState<any>(null);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false); // 🎯 CRITICAL: Track if auth check finished
+  const [authChecked, setAuthChecked] = useState(false);
 
   const restoreRiderData = useCallback(async (userId: string) => {
     setIsSyncing(true);
@@ -55,29 +55,34 @@ function App() {
 
   useEffect(() => {
     const initAuth = async () => {
-      // 🎯 1. Check Supabase session first
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        const data = await restoreRiderData(session.user.id);
-        if (data) {
-           setRider(data);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          const data = await restoreRiderData(session.user.id);
+          if (data) setRider(data);
+        } else {
+          const saved = localStorage.getItem('kilo_rider_session');
+          if (saved) setRider(JSON.parse(saved));
         }
-      } else {
-        // 🎯 2. If no session, check localStorage as backup
-        const saved = localStorage.getItem('kilo_rider_session');
-        if (saved) setRider(JSON.parse(saved));
+      } catch (e) {
+        console.error("Auth init failed", e);
+      } finally {
+        setAuthChecked(true);
       }
-      
-      setAuthChecked(true); // 🎯 Auth process finished
     };
 
     initAuth();
 
+    // 🎯 SAFETY TIMEOUT: If auth takes > 5s, force move to login so it's not black
+    const timer = setTimeout(() => {
+        if (!authChecked) setAuthChecked(true);
+    }, 5000);
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        const data = await restoreRiderData(session.user.id);
-        if (data) setStage('dashboard');
+        await restoreRiderData(session.user.id);
+        setStage('dashboard');
       } else if (event === 'SIGNED_OUT') {
         setRider(null);
         localStorage.removeItem('kilo_rider_session');
@@ -85,13 +90,14 @@ function App() {
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, [restoreRiderData]);
+    return () => {
+        subscription.unsubscribe();
+        clearTimeout(timer);
+    };
+  }, [restoreRiderData, authChecked]);
 
   const handleSplashComplete = () => {
-    // 🎯 If auth check is still running, don't leave splash yet
-    if (!authChecked) return;
-
+    // 🎯 Improved transition logic
     if (rider) {
       setStage('dashboard');
     } else {
@@ -101,10 +107,8 @@ function App() {
 
   const handleLogin = async (riderData: any) => {
     setRider(riderData);
-    const syncedData = await restoreRiderData(riderData.id);
-    if (syncedData) {
-      setStage('dashboard');
-    }
+    await restoreRiderData(riderData.id);
+    setStage('dashboard');
   };
 
   const handleLogout = async () => {
@@ -115,7 +119,19 @@ function App() {
   };
 
   return (
-    <div className="bg-[#08080a] min-h-screen text-white font-sans lowercase selection:bg-primary/30">
+    <div className="bg-[#08080a] min-h-screen text-white font-sans selection:bg-primary/30">
+      {/* 🎯 Always show a backup "Emergency" view if stuck */}
+      {stage === 'loading' && authChecked && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black z-[100]">
+              <button 
+                onClick={handleSplashComplete}
+                className="px-4 py-2 border border-white/20 rounded-full text-[10px] uppercase tracking-widest"
+              >
+                Enter App
+              </button>
+          </div>
+      )}
+
       {isSyncing && (
         <div className="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
