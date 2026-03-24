@@ -6,7 +6,8 @@
 		"androidScheme": "https",
 		"cleartext": true,
 		"allowNavigation": [
-			"*"
+			"*.supabase.co",
+			"localhost"
 		]
 	}
 }
